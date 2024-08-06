@@ -33,13 +33,10 @@
   
 - [api/v1/auth_service.proto](#api_v1_auth_service-proto)
     - [GetAuthStatusRequest](#slash-api-v1-GetAuthStatusRequest)
-    - [GetAuthStatusResponse](#slash-api-v1-GetAuthStatusResponse)
     - [SignInRequest](#slash-api-v1-SignInRequest)
-    - [SignInResponse](#slash-api-v1-SignInResponse)
+    - [SignInWithSSORequest](#slash-api-v1-SignInWithSSORequest)
     - [SignOutRequest](#slash-api-v1-SignOutRequest)
-    - [SignOutResponse](#slash-api-v1-SignOutResponse)
     - [SignUpRequest](#slash-api-v1-SignUpRequest)
-    - [SignUpResponse](#slash-api-v1-SignUpResponse)
   
     - [AuthService](#slash-api-v1-AuthService)
   
@@ -98,22 +95,27 @@
     - [UpdateUserSettingRequest](#slash-api-v1-UpdateUserSettingRequest)
     - [UpdateUserSettingResponse](#slash-api-v1-UpdateUserSettingResponse)
     - [UserSetting](#slash-api-v1-UserSetting)
-  
-    - [UserSetting.ColorTheme](#slash-api-v1-UserSetting-ColorTheme)
-    - [UserSetting.Locale](#slash-api-v1-UserSetting-Locale)
+    - [UserSetting.AccessTokensSetting](#slash-api-v1-UserSetting-AccessTokensSetting)
+    - [UserSetting.AccessTokensSetting.AccessToken](#slash-api-v1-UserSetting-AccessTokensSetting-AccessToken)
+    - [UserSetting.GeneralSetting](#slash-api-v1-UserSetting-GeneralSetting)
   
     - [UserSettingService](#slash-api-v1-UserSettingService)
   
 - [api/v1/workspace_service.proto](#api_v1_workspace_service-proto)
-    - [AutoBackupWorkspaceSetting](#slash-api-v1-AutoBackupWorkspaceSetting)
     - [GetWorkspaceProfileRequest](#slash-api-v1-GetWorkspaceProfileRequest)
     - [GetWorkspaceProfileResponse](#slash-api-v1-GetWorkspaceProfileResponse)
     - [GetWorkspaceSettingRequest](#slash-api-v1-GetWorkspaceSettingRequest)
     - [GetWorkspaceSettingResponse](#slash-api-v1-GetWorkspaceSettingResponse)
+    - [IdentityProvider](#slash-api-v1-IdentityProvider)
+    - [IdentityProviderConfig](#slash-api-v1-IdentityProviderConfig)
+    - [IdentityProviderConfig.FieldMapping](#slash-api-v1-IdentityProviderConfig-FieldMapping)
+    - [IdentityProviderConfig.OAuth2Config](#slash-api-v1-IdentityProviderConfig-OAuth2Config)
     - [UpdateWorkspaceSettingRequest](#slash-api-v1-UpdateWorkspaceSettingRequest)
     - [UpdateWorkspaceSettingResponse](#slash-api-v1-UpdateWorkspaceSettingResponse)
     - [WorkspaceProfile](#slash-api-v1-WorkspaceProfile)
     - [WorkspaceSetting](#slash-api-v1-WorkspaceSetting)
+  
+    - [IdentityProvider.Type](#slash-api-v1-IdentityProvider-Type)
   
     - [WorkspaceService](#slash-api-v1-WorkspaceService)
   
@@ -496,21 +498,6 @@
 
 
 
-<a name="slash-api-v1-GetAuthStatusResponse"></a>
-
-### GetAuthStatusResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| user | [User](#slash-api-v1-User) |  |  |
-
-
-
-
-
-
 <a name="slash-api-v1-SignInRequest"></a>
 
 ### SignInRequest
@@ -527,15 +514,17 @@
 
 
 
-<a name="slash-api-v1-SignInResponse"></a>
+<a name="slash-api-v1-SignInWithSSORequest"></a>
 
-### SignInResponse
+### SignInWithSSORequest
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| user | [User](#slash-api-v1-User) |  |  |
+| idp_name | [string](#string) |  | The name of the SSO provider. |
+| code | [string](#string) |  | The code to sign in with. |
+| redirect_uri | [string](#string) |  | The redirect URI. |
 
 
 
@@ -545,16 +534,6 @@
 <a name="slash-api-v1-SignOutRequest"></a>
 
 ### SignOutRequest
-
-
-
-
-
-
-
-<a name="slash-api-v1-SignOutResponse"></a>
-
-### SignOutResponse
 
 
 
@@ -578,21 +557,6 @@
 
 
 
-
-<a name="slash-api-v1-SignUpResponse"></a>
-
-### SignUpResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| user | [User](#slash-api-v1-User) |  |  |
-
-
-
-
-
  
 
  
@@ -607,10 +571,11 @@
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| GetAuthStatus | [GetAuthStatusRequest](#slash-api-v1-GetAuthStatusRequest) | [GetAuthStatusResponse](#slash-api-v1-GetAuthStatusResponse) |  |
-| SignIn | [SignInRequest](#slash-api-v1-SignInRequest) | [SignInResponse](#slash-api-v1-SignInResponse) |  |
-| SignUp | [SignUpRequest](#slash-api-v1-SignUpRequest) | [SignUpResponse](#slash-api-v1-SignUpResponse) |  |
-| SignOut | [SignOutRequest](#slash-api-v1-SignOutRequest) | [SignOutResponse](#slash-api-v1-SignOutResponse) |  |
+| GetAuthStatus | [GetAuthStatusRequest](#slash-api-v1-GetAuthStatusRequest) | [User](#slash-api-v1-User) | GetAuthStatus returns the current auth status of the user. |
+| SignIn | [SignInRequest](#slash-api-v1-SignInRequest) | [User](#slash-api-v1-User) | SignIn signs in the user with the given username and password. |
+| SignInWithSSO | [SignInWithSSORequest](#slash-api-v1-SignInWithSSORequest) | [User](#slash-api-v1-User) | SignInWithSSO signs in the user with the given SSO code. |
+| SignUp | [SignUpRequest](#slash-api-v1-SignUpRequest) | [User](#slash-api-v1-User) | SignUp signs up the user with the given username and password. |
+| SignOut | [SignOutRequest](#slash-api-v1-SignOutRequest) | [.google.protobuf.Empty](#google-protobuf-Empty) | SignOut signs out the user. |
 
  
 
@@ -1325,43 +1290,62 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| id | [int32](#int32) |  | id is the user id. |
-| locale | [UserSetting.Locale](#slash-api-v1-UserSetting-Locale) |  | locale is the user locale. |
-| color_theme | [UserSetting.ColorTheme](#slash-api-v1-UserSetting-ColorTheme) |  | color_theme is the user color theme. |
+| user_id | [int32](#int32) |  |  |
+| general | [UserSetting.GeneralSetting](#slash-api-v1-UserSetting-GeneralSetting) |  |  |
+| access_tokens | [UserSetting.AccessTokensSetting](#slash-api-v1-UserSetting-AccessTokensSetting) |  |  |
+
+
+
+
+
+
+<a name="slash-api-v1-UserSetting-AccessTokensSetting"></a>
+
+### UserSetting.AccessTokensSetting
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| access_tokens | [UserSetting.AccessTokensSetting.AccessToken](#slash-api-v1-UserSetting-AccessTokensSetting-AccessToken) | repeated | Nested repeated field |
+
+
+
+
+
+
+<a name="slash-api-v1-UserSetting-AccessTokensSetting-AccessToken"></a>
+
+### UserSetting.AccessTokensSetting.AccessToken
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| access_token | [string](#string) |  | The access token is a JWT token, including expiration time, issuer, etc. |
+| description | [string](#string) |  | A description for the access token. |
+
+
+
+
+
+
+<a name="slash-api-v1-UserSetting-GeneralSetting"></a>
+
+### UserSetting.GeneralSetting
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| locale | [string](#string) |  |  |
+| color_theme | [string](#string) |  |  |
 
 
 
 
 
  
-
-
-<a name="slash-api-v1-UserSetting-ColorTheme"></a>
-
-### UserSetting.ColorTheme
-
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| COLOR_THEME_UNSPECIFIED | 0 |  |
-| COLOR_THEME_SYSTEM | 1 |  |
-| COLOR_THEME_LIGHT | 2 |  |
-| COLOR_THEME_DARK | 3 |  |
-
-
-
-<a name="slash-api-v1-UserSetting-Locale"></a>
-
-### UserSetting.Locale
-
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| LOCALE_UNSPECIFIED | 0 |  |
-| LOCALE_EN | 1 |  |
-| LOCALE_ZH | 2 |  |
-| LOCALE_FR | 3 |  |
-
 
  
 
@@ -1386,23 +1370,6 @@
 <p align="right"><a href="#top">Top</a></p>
 
 ## api/v1/workspace_service.proto
-
-
-
-<a name="slash-api-v1-AutoBackupWorkspaceSetting"></a>
-
-### AutoBackupWorkspaceSetting
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| enabled | [bool](#bool) |  | Whether auto backup is enabled. |
-| cron_expression | [string](#string) |  | The cron expression for auto backup. For example, &#34;0 0 0 * * *&#34; means backup at 00:00:00 every day. See https://en.wikipedia.org/wiki/Cron for more details. |
-| max_keep | [int32](#int32) |  | The maximum number of backups to keep. |
-
-
-
 
 
 
@@ -1456,6 +1423,75 @@
 
 
 
+<a name="slash-api-v1-IdentityProvider"></a>
+
+### IdentityProvider
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| name | [string](#string) |  |  |
+| type | [IdentityProvider.Type](#slash-api-v1-IdentityProvider-Type) |  |  |
+| config | [IdentityProviderConfig](#slash-api-v1-IdentityProviderConfig) |  |  |
+
+
+
+
+
+
+<a name="slash-api-v1-IdentityProviderConfig"></a>
+
+### IdentityProviderConfig
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| oauth2 | [IdentityProviderConfig.OAuth2Config](#slash-api-v1-IdentityProviderConfig-OAuth2Config) |  |  |
+
+
+
+
+
+
+<a name="slash-api-v1-IdentityProviderConfig-FieldMapping"></a>
+
+### IdentityProviderConfig.FieldMapping
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| identifier | [string](#string) |  |  |
+| display_name | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="slash-api-v1-IdentityProviderConfig-OAuth2Config"></a>
+
+### IdentityProviderConfig.OAuth2Config
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| client_id | [string](#string) |  |  |
+| client_secret | [string](#string) |  |  |
+| auth_url | [string](#string) |  |  |
+| token_url | [string](#string) |  |  |
+| user_info_url | [string](#string) |  |  |
+| scopes | [string](#string) | repeated |  |
+| field_mapping | [IdentityProviderConfig.FieldMapping](#slash-api-v1-IdentityProviderConfig-FieldMapping) |  |  |
+
+
+
+
+
+
 <a name="slash-api-v1-UpdateWorkspaceSettingRequest"></a>
 
 ### UpdateWorkspaceSettingRequest
@@ -1500,9 +1536,8 @@
 | plan | [PlanType](#slash-api-v1-PlanType) |  | The workspace plan. |
 | enable_signup | [bool](#bool) |  | Whether to enable other users to sign up. |
 | custom_style | [string](#string) |  | The custom style. |
-| custom_script | [string](#string) |  | The custom script. |
-| favicon_provider | [string](#string) |  | The url of custom favicon provider. |
 | owner | [string](#string) |  | The owner name. Format: &#34;users/{id}&#34; |
+| branding | [bytes](#bytes) |  | The workspace branding. |
 
 
 
@@ -1517,20 +1552,28 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| license_key | [string](#string) |  |  |
-| enable_signup | [bool](#bool) |  | Whether to enable other users to sign up. |
-| instance_url | [string](#string) |  | The instance URL. |
+| branding | [bytes](#bytes) |  | The workspace custome branding. |
 | custom_style | [string](#string) |  | The custom style. |
-| custom_script | [string](#string) |  | The custom script. |
-| auto_backup | [AutoBackupWorkspaceSetting](#slash-api-v1-AutoBackupWorkspaceSetting) |  | The auto backup setting. (Unimplemented) |
 | default_visibility | [Visibility](#slash-api-v1-Visibility) |  | The default visibility of shortcuts and collections. |
-| favicon_provider | [string](#string) |  | The url of custom favicon provider. |
+| identity_providers | [IdentityProvider](#slash-api-v1-IdentityProvider) | repeated | The identity providers. |
 
 
 
 
 
  
+
+
+<a name="slash-api-v1-IdentityProvider-Type"></a>
+
+### IdentityProvider.Type
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| TYPE_UNSPECIFIED | 0 |  |
+| OAUTH2 | 1 |  |
+
 
  
 

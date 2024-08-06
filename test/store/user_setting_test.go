@@ -24,10 +24,10 @@ func TestUserSettingStore(t *testing.T) {
 	// Test for access tokens user setting.
 	accessTokensUserSetting, err := ts.UpsertUserSetting(ctx, &storepb.UserSetting{
 		UserId: user.ID,
-		Key:    storepb.UserSettingKey_ACCESS_TOKENS,
+		Key:    storepb.UserSettingKey_USER_SETTING_ACCESS_TOKENS,
 		Value: &storepb.UserSetting_AccessTokens{
-			AccessTokens: &storepb.AccessTokensUserSetting{
-				AccessTokens: []*storepb.AccessTokensUserSetting_AccessToken{
+			AccessTokens: &storepb.UserSetting_AccessTokensSetting{
+				AccessTokens: []*storepb.UserSetting_AccessTokensSetting_AccessToken{
 					{
 						AccessToken: "test_access_token",
 					},
@@ -37,7 +37,7 @@ func TestUserSettingStore(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NotNil(t, accessTokensUserSetting)
-	require.Equal(t, storepb.UserSettingKey_ACCESS_TOKENS, accessTokensUserSetting.Key)
+	require.Equal(t, storepb.UserSettingKey_USER_SETTING_ACCESS_TOKENS, accessTokensUserSetting.Key)
 	require.Equal(t, user.ID, accessTokensUserSetting.UserId)
 	require.Equal(t, 1, len(accessTokensUserSetting.GetAccessTokens().AccessTokens))
 	userSettings, err = ts.ListUserSettings(ctx, &store.FindUserSetting{
@@ -48,7 +48,7 @@ func TestUserSettingStore(t *testing.T) {
 	require.Equal(t, accessTokensUserSetting, userSettings[0])
 	accessTokensUserSetting, err = ts.GetUserSetting(ctx, &store.FindUserSetting{
 		UserID: &user.ID,
-		Key:    storepb.UserSettingKey_ACCESS_TOKENS,
+		Key:    storepb.UserSettingKey_USER_SETTING_ACCESS_TOKENS,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, accessTokensUserSetting)
@@ -56,10 +56,10 @@ func TestUserSettingStore(t *testing.T) {
 	require.Equal(t, "test_access_token", accessTokensUserSetting.GetAccessTokens().AccessTokens[0].AccessToken)
 	accessTokensUserSetting, err = ts.UpsertUserSetting(ctx, &storepb.UserSetting{
 		UserId: user.ID,
-		Key:    storepb.UserSettingKey_ACCESS_TOKENS,
+		Key:    storepb.UserSettingKey_USER_SETTING_ACCESS_TOKENS,
 		Value: &storepb.UserSetting_AccessTokens{
-			AccessTokens: &storepb.AccessTokensUserSetting{
-				AccessTokens: []*storepb.AccessTokensUserSetting_AccessToken{
+			AccessTokens: &storepb.UserSetting_AccessTokensSetting{
+				AccessTokens: []*storepb.UserSetting_AccessTokensSetting_AccessToken{
 					{
 						AccessToken: "test_access_token",
 					},
@@ -74,47 +74,33 @@ func TestUserSettingStore(t *testing.T) {
 	require.NotNil(t, accessTokensUserSetting)
 	require.Equal(t, 2, len(accessTokensUserSetting.GetAccessTokens().AccessTokens))
 
-	// Test for locale user setting.
-	localeUserSetting, err := ts.UpsertUserSetting(ctx, &storepb.UserSetting{
+	// Test for user setting general.
+	userSettingGeneral, err := ts.UpsertUserSetting(ctx, &storepb.UserSetting{
 		UserId: user.ID,
-		Key:    storepb.UserSettingKey_LOCALE,
-		Value: &storepb.UserSetting_Locale{
-			Locale: storepb.LocaleUserSetting_ZH,
+		Key:    storepb.UserSettingKey_USER_SETTING_GENERAL,
+		Value: &storepb.UserSetting_General{
+			General: &storepb.UserSetting_GeneralSetting{
+				Locale:     "ZH",
+				ColorTheme: "SYSTEM",
+			},
 		},
 	})
 	require.NoError(t, err)
-	require.NotNil(t, localeUserSetting)
-	require.Equal(t, storepb.UserSettingKey_LOCALE, localeUserSetting.Key)
-	require.Equal(t, storepb.LocaleUserSetting_ZH, localeUserSetting.GetLocale())
-	localeUserSetting, err = ts.UpsertUserSetting(ctx, &storepb.UserSetting{
+	require.NotNil(t, userSettingGeneral)
+	require.Equal(t, storepb.UserSettingKey_USER_SETTING_GENERAL, userSettingGeneral.Key)
+	require.Equal(t, "ZH", userSettingGeneral.GetGeneral().Locale)
+	require.Equal(t, "SYSTEM", userSettingGeneral.GetGeneral().ColorTheme)
+	userSettingGeneral, err = ts.UpsertUserSetting(ctx, &storepb.UserSetting{
 		UserId: user.ID,
-		Key:    storepb.UserSettingKey_LOCALE,
-		Value: &storepb.UserSetting_Locale{
-			Locale: storepb.LocaleUserSetting_EN,
+		Key:    storepb.UserSettingKey_USER_SETTING_GENERAL,
+		Value: &storepb.UserSetting_General{
+			General: &storepb.UserSetting_GeneralSetting{
+				Locale:     "EN",
+				ColorTheme: "DARK",
+			},
 		},
 	})
 	require.NoError(t, err)
-	require.Equal(t, storepb.LocaleUserSetting_EN, localeUserSetting.GetLocale())
-
-	// Test for color theme user setting.
-	colorThemeUserSetting, err := ts.UpsertUserSetting(ctx, &storepb.UserSetting{
-		UserId: user.ID,
-		Key:    storepb.UserSettingKey_COLOR_THEME,
-		Value: &storepb.UserSetting_ColorTheme{
-			ColorTheme: storepb.ColorThemeUserSetting_LIGHT,
-		},
-	})
-	require.NoError(t, err)
-	require.NotNil(t, colorThemeUserSetting)
-	require.Equal(t, storepb.UserSettingKey_COLOR_THEME, colorThemeUserSetting.Key)
-	require.Equal(t, storepb.ColorThemeUserSetting_LIGHT, colorThemeUserSetting.GetColorTheme())
-	colorThemeUserSetting, err = ts.UpsertUserSetting(ctx, &storepb.UserSetting{
-		UserId: user.ID,
-		Key:    storepb.UserSettingKey_COLOR_THEME,
-		Value: &storepb.UserSetting_ColorTheme{
-			ColorTheme: storepb.ColorThemeUserSetting_DARK,
-		},
-	})
-	require.NoError(t, err)
-	require.Equal(t, storepb.ColorThemeUserSetting_DARK, colorThemeUserSetting.GetColorTheme())
+	require.Equal(t, "EN", userSettingGeneral.GetGeneral().Locale)
+	require.Equal(t, "DARK", userSettingGeneral.GetGeneral().ColorTheme)
 }
